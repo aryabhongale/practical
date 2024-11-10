@@ -1,0 +1,196 @@
+#include <iostream>
+#include <stack>
+#include <string>
+#include <cctype>
+
+using namespace std;
+
+struct Node {
+    char data;
+    Node* left;
+    Node* right;
+    
+    Node(char value) {
+        data = value;
+        left = right = nullptr;
+    }
+};
+
+class ExpressionTree {
+public:
+    Node* buildFromPostfix(string postfix);
+    Node* buildFromPrefix(string prefix);
+    
+    void recursiveInOrder(Node* root);
+    void recursivePreOrder(Node* root);
+    void recursivePostOrder(Node* root);
+    
+    void nonRecursiveInOrder(Node* root);
+    void nonRecursivePreOrder(Node* root);
+    void nonRecursivePostOrder(Node* root);
+};
+
+bool isOperator(char c) {
+    return (c == '+' || c == '-' || c == '*' || c == '/');
+}
+
+Node* ExpressionTree::buildFromPostfix(string postfix) {
+    stack<Node*> s;
+    
+    for (char& c : postfix) {
+        if (isalnum(c)) {
+            s.push(new Node(c));
+        } else if (isOperator(c)) {
+            Node* right = s.top(); s.pop();
+            Node* left = s.top(); s.pop();
+            Node* newNode = new Node(c);
+            newNode->left = left;
+            newNode->right = right;
+            s.push(newNode);
+        }
+    }
+    
+    return s.top();
+}
+
+Node* ExpressionTree::buildFromPrefix(string prefix) {
+    stack<Node*> s;
+    
+    for (int i = prefix.length() - 1; i >= 0; i--) {
+        char c = prefix[i];
+        
+        if (isalnum(c)) {
+            s.push(new Node(c));
+        } else if (isOperator(c)) {
+            Node* left = s.top(); s.pop();
+            Node* right = s.top(); s.pop();
+            Node* newNode = new Node(c);
+            newNode->left = left;
+            newNode->right = right;
+            s.push(newNode);
+        }
+    }
+    
+    return s.top();
+}
+
+void ExpressionTree::recursiveInOrder(Node* root) {
+    if (root != nullptr) {
+        recursiveInOrder(root->left);
+        cout << root->data << " ";
+        recursiveInOrder(root->right);
+    }
+}
+
+void ExpressionTree::recursivePreOrder(Node* root) {
+    if (root != nullptr) {
+        cout << root->data << " ";
+        recursivePreOrder(root->left);
+        recursivePreOrder(root->right);
+    }
+}
+
+void ExpressionTree::recursivePostOrder(Node* root) {
+    if (root != nullptr) {
+        recursivePostOrder(root->left);
+        recursivePostOrder(root->right);
+        cout << root->data << " ";
+    }
+}
+
+void ExpressionTree::nonRecursiveInOrder(Node* root) {
+    stack<Node*> s;
+    Node* current = root;
+    
+    while (current != nullptr || !s.empty()) {
+        while (current != nullptr) {
+            s.push(current);
+            current = current->left;
+        }
+        
+        current = s.top(); s.pop();
+        cout << current->data << " ";
+        
+        current = current->right;
+    }
+}
+
+void ExpressionTree::nonRecursivePreOrder(Node* root) {
+    if (root == nullptr) return;
+    
+    stack<Node*> s;
+    s.push(root);
+    
+    while (!s.empty()) {
+        Node* current = s.top(); s.pop();
+        cout << current->data << " ";
+        
+        if (current->right != nullptr) s.push(current->right);
+        if (current->left != nullptr) s.push(current->left);
+    }
+}
+
+void ExpressionTree::nonRecursivePostOrder(Node* root) {
+    if (root == nullptr) return;
+    
+    stack<Node*> s1, s2;
+    s1.push(root);
+    
+    while (!s1.empty()) {
+        Node* current = s1.top(); s1.pop();
+        s2.push(current);
+        
+        if (current->left != nullptr) s1.push(current->left);
+        if (current->right != nullptr) s1.push(current->right);
+    }
+    
+    while (!s2.empty()) {
+        cout << s2.top()->data << " ";
+        s2.pop();
+    }
+}
+
+int main() {
+    string expression;
+    int choice;
+    ExpressionTree tree;
+    
+    cout << "Enter the type of expression to build the tree:\n";
+    cout << "1. Postfix\n2. Prefix\n";
+    cout << "Enter choice (1/2): ";
+    cin >> choice;
+    
+    cout << "Enter the expression: ";
+    cin >> expression;
+    
+    Node* root = nullptr;
+    
+    if (choice == 1) {
+        root = tree.buildFromPostfix(expression);
+    } else if (choice == 2) {
+        root = tree.buildFromPrefix(expression);
+    } else {
+        cout << "Invalid choice.\n";
+        return 0;
+    }
+    
+    cout << "\nRecursive Traversals:\n";
+    
+    cout << "In-order: ";
+    tree.recursiveInOrder(root);
+    cout << "\nPre-order: ";
+    tree.recursivePreOrder(root);
+    cout << "\nPost-order: ";
+    tree.recursivePostOrder(root);
+    
+    cout << "\nNon-recursive Traversals:\n";
+    
+    cout << "In-order: ";
+    tree.nonRecursiveInOrder(root);
+    cout << "\nPre-order: ";
+    tree.nonRecursivePreOrder(root);
+    cout << "\nPost-order: ";
+    tree.nonRecursivePostOrder(root);
+    
+    return 0;
+}
